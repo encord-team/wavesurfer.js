@@ -5,6 +5,7 @@
  */
 import BasePlugin, { type BasePluginEvents } from '../base-plugin.js';
 import EventEmitter from '../event-emitter.js';
+import Wavesurfer from '../wavesurfer';
 export type RegionsPluginOptions = undefined;
 export type RegionsPluginEvents = BasePluginEvents & {
     /** When a new region is initialized but not rendered yet */
@@ -32,7 +33,7 @@ export type RegionEvents = {
     /** Before the region is removed */
     remove: [];
     /** When the region's parameters are being updated */
-    update: [side?: 'start' | 'end'];
+    update: [side?: 'start' | 'end', autoScrollDirection?: AutoScrollDirection];
     /** When dragging or resizing is finished */
     'update-end': [];
     /** On play */
@@ -76,8 +77,11 @@ export type RegionParams = {
     /** Allow/Disallow contenteditable property for content */
     contentEditable?: boolean;
 };
+/** Which direction should be auto scrolled if region is updated such that it overflows the scroll container */
+type AutoScrollDirection = 'left' | 'right' | 'both' | 'none';
 declare class SingleRegion extends EventEmitter<RegionEvents> implements Region {
     private totalDuration;
+    private wavesurfer;
     private numberOfChannels;
     element: HTMLElement | null;
     id: string;
@@ -94,8 +98,10 @@ declare class SingleRegion extends EventEmitter<RegionEvents> implements Region 
     channelIdx: number;
     contentEditable: boolean;
     subscriptions: (() => void)[];
+    isDragging: boolean;
     private isRemoved;
-    constructor(params: RegionParams, totalDuration: number, numberOfChannels?: number);
+    private autoScrollDirection;
+    constructor(params: RegionParams, totalDuration: number, wavesurfer: Wavesurfer, numberOfChannels?: number);
     private clampPosition;
     private setPart;
     private addResizeHandles;
@@ -104,7 +110,7 @@ declare class SingleRegion extends EventEmitter<RegionEvents> implements Region 
     private renderPosition;
     private toggleCursor;
     private initMouseEvents;
-    _onUpdate(dx: number, side?: 'start' | 'end'): void;
+    _onUpdate(dx: number, side?: 'start' | 'end', autoScrollDirection?: AutoScrollDirection): void;
     private onMove;
     private onResize;
     private onEndResizing;
